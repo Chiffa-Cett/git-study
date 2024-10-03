@@ -1,0 +1,36 @@
+#Performing import of libraries which will be used for port scanning and OS detection
+
+import socket
+import nmap
+
+#Defining the function
+def full_scan():
+    #This variable holds name of the host which user types
+    target = input('Please enter host to scan: ')
+    #This variable holds IP address corresponding to the host name from the variable "target" above .
+    host = socket.gethostbyname(target)
+
+    print('Target:' + target)
+    print('Host:' + host)
+    #Performing a basic poort scan using socket in range of ports from 1 to 1025
+    for port in range(1, 1025):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #Setting time-out in 0.001 of second to move to the next port if the attempt to connect to the port does not end successfully during this time, an exception will be generated, and the program will continue to check the next port.
+        s.settimeout(0.001)
+        result = s.connect_ex((host, port))
+        if result == 0:
+            print('Port: {} Open'.format(port))
+    #Using Nmap for more advanced scanning and OS detection
+    nm_scan = nmap.PortScanner()
+    #Initialazing of scanning with argument -O which will be discovering OS with maximum host`s response time
+    nm_scan.scan(target, arguments='-O --host-timeout 5m')
+    #Implementing exception in case of error during the process of defining host`s OS
+    try:
+        os_info = nm_scan[target]['osmatch']
+        for os in os_info:
+            print('OS: {0} ({1})'.format(os['name'], os['accuracy']))
+    except KeyError:
+        print('Not possible to define host`s OS.')
+
+
+full_scan()
